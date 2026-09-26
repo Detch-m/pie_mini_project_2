@@ -70,7 +70,7 @@ ax.set_zlabel('Z Axis')
 ax.set_title('3D Line & Scatter Plot')
 ax.legend()
 
-iterations = 0
+iterations = 0 # Temporary code
 
 while True:
     if serialPort.readline().decode("utf-8").strip() == "Ready":

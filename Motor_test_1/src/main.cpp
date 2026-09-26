@@ -23,7 +23,10 @@ void readData(){
 }
 
 void sendData(int yawAngle= -1, int pitchAngle = -1, int readingVal = -1){
-  // Sends data to serial port python 
+  // Sends data to serial port python
+  Serial.print(readingVal); Serial.print(",");
+  Serial.print(pitchAngle); Serial.print(",");
+  Serial.println(yawAngle);
 }
 
 void moveYawServo(int yawAngle){
@@ -84,6 +87,8 @@ void setup() {
   // set both servo to default positions
   yawServo.write(0);
   pitchServo.write(0);
+  while (!Serial);
+  Serial.println("Ready");
   delay(2000);
   scanOnce(yawStart_val, yawEnd_val, pitchStart_val, pitchEnd_val);
 }
