@@ -57,11 +57,12 @@ void scanOnce(){
   for (int angle = 0; angle < 180; angle = angle + 10)
   {
     movePitchServo(angle);
-    moveYawServo();
+    //moveYawServo();
   }
 }
 
 void kill(){
+  // kill the motor
   yawServo.write(0);
   pitchServo.write(0);
 }
@@ -78,5 +79,5 @@ void setup() {
   // set both servo to default positions
   yawServo.write(0);
   pitchServo.write(0);
-  kill();
+  scanOnce();
 }
