@@ -2,7 +2,8 @@
 #include <Servo.h>
 #define servo_pin_1 9
 #define servo_pin_2 10
-#define analog_pin A0
+#define pot_pin A0
+#define IR_sensor A1
 
 Servo yawServo;
 Servo pitchServo;
@@ -14,15 +15,14 @@ int yawEnd_val = 120;
 int pitchStart_val = 30;
 int pitchEnd_val = 150;
 
-void loop() {
-  // Code that loops
-}
-
 void readData(){
   // Reads data from the sensor
+  int x = analogRead(0);
+  int y = analogRead(0);
+  int z = analogRead(0);
 }
 
-void sendData(){
+void sendData(int yawAngle= -1, int pitchAngle = -1, int readingVal = -1){
   // Sends data to serial port python 
 }
 
@@ -30,7 +30,8 @@ void moveYawServo(int yawAngle){
   // Yaw is also commonly understood as Pan
   // Moves servo to angle location
   yawServo.write(yawAngle);
-  Serial.println("Yaw " + yawAngle);
+  Serial.print("Yaw: ");
+  Serial.println(yawAngle);
   delay(1000);
 }
 
@@ -39,15 +40,16 @@ void movePitchServo(int pitchStart, int pitchEnd){
   // Moves pitch from pitchStart to pitchEnd, stoppping at each 5 degrees
   for (int angle = pitchStart; angle < pitchEnd; angle = angle + 5)
   {
-    Serial.println("pitch: " + angle);
     pitchServo.write(angle);
+    Serial.print("Pitch: ");
+    Serial.println(angle);
     delay(1000);
   }
 }
 
 void controlByPot(){
   // Manual control for the Servo, great for manual debugging
-  val = analogRead(analog_pin);
+  val = analogRead(pot_pin);
   val = map(val, 0, 1023, 0, 180);
   unsigned long currentMicros = micros();
 }
@@ -76,11 +78,16 @@ void setup() {
   pitchServo.attach(10);
   pinMode(servo_pin_1, OUTPUT);
   pinMode(servo_pin_2, OUTPUT);
-  pinMode(analog_pin, INPUT_PULLUP);
+  pinMode(pot_pin, INPUT_PULLUP);
+  pinMode(IR_sensor, INPUT_PULLUP);
 
   // set both servo to default positions
   yawServo.write(0);
   pitchServo.write(0);
   delay(2000);
   scanOnce(yawStart_val, yawEnd_val, pitchStart_val, pitchEnd_val);
+}
+
+void loop() {
+  // Code that loops
 }
