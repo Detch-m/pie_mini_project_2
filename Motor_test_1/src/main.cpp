@@ -3,7 +3,7 @@
 #define servo_pin_1 9
 #define servo_pin_2 10
 #define pot_pin A0
-#define IR_sensor A1
+// #define IR_sensor A1
 
 Servo yawServo;
 Servo pitchServo;
@@ -14,12 +14,13 @@ int yawStart_val = 30;
 int yawEnd_val = 120;
 int pitchStart_val = 30;
 int pitchEnd_val = 150;
+int pitchAngle = 0;
+int yawAngle = 0;
+int readingVal = 0;
+const double IR_sensor = A1; 
 
 void readData(){
-  // Reads data from the sensor
-  int x = analogRead(0);
-  int y = analogRead(0);
-  int z = analogRead(0);
+  readingVal = analogRead(IR_sensor); 
 }
 
 void sendData(int yawAngle= -1, int pitchAngle = -1, int readingVal = -1){
@@ -33,9 +34,9 @@ void moveYawServo(int yawAngle){
   // Yaw is also commonly understood as Pan
   // Moves servo to angle location
   yawServo.write(yawAngle);
-  Serial.print("Yaw: ");
-  Serial.println(yawAngle);
-  delay(1000);
+  // Serial.print("Yaw: ");
+  // Serial.println(yawAngle);
+  delay(100);
 }
 
 void movePitchServo(int pitchStart, int pitchEnd){
@@ -43,10 +44,13 @@ void movePitchServo(int pitchStart, int pitchEnd){
   // Moves pitch from pitchStart to pitchEnd, stoppping at each 5 degrees
   for (int angle = pitchStart; angle < pitchEnd; angle = angle + 5)
   {
+    pitchAngle = angle;
     pitchServo.write(angle);
-    Serial.print("Pitch: ");
-    Serial.println(angle);
-    delay(1000);
+    readData();
+    sendData(yawAngle, pitchAngle, readingVal);
+    // Serial.print("Pitch: ");
+    // Serial.println(angle);
+    delay(100);
   }
 }
 
@@ -63,8 +67,9 @@ void scanOnce(int yawStart, int yawEnd, int pitchStart, int pitchEnd){
   // Pitch servo is initially at 0, it will sweep to 180, stopping each 10 degrees
   for (int angle = yawStart; angle < yawEnd; angle = angle + 10)
   {
-    movePitchServo(pitchStart, pitchEnd);
-    moveYawServo(angle); 
+    yawAngle = angle;
+    moveYawServo(angle);
+    movePitchServo(pitchStart, pitchEnd); 
   }
 }
 
@@ -82,7 +87,7 @@ void setup() {
   pinMode(servo_pin_1, OUTPUT);
   pinMode(servo_pin_2, OUTPUT);
   pinMode(pot_pin, INPUT_PULLUP);
-  pinMode(IR_sensor, INPUT_PULLUP);
+  // pinMode(IR_sensor, INPUT_PULLUP);
 
   // set both servo to default positions
   yawServo.write(0);
@@ -91,6 +96,7 @@ void setup() {
   Serial.println("Ready");
   delay(2000);
   scanOnce(yawStart_val, yawEnd_val, pitchStart_val, pitchEnd_val);
+  Serial.println("Done");
 }
 
 void loop() {

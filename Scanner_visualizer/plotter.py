@@ -7,6 +7,7 @@
 # ******************************************************************
 import serial
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 import numpy as np
 import time
 #
@@ -45,40 +46,41 @@ time.sleep(2)
 # main loop to read data from the Arduino, then display it
 #
 
-# 1. Setup the figure and 3D axes
+x = []
+y = []
+z = []
+
+def update(frame):
+    # updating the data by adding one more point
+    # x.append(random.randint(1,100))
+    # y.append(random.randint(1,100))
+    x.append(sensorValue * np.cos(theta) * np.cos(phi))
+    y.append(sensorValue * np.cos(theta) * np.sin(phi))
+    z.append(sensorValue * np.sin(theta))
+
+    ax.clear()  # clearing the axes
+    ax.scatter(x, y, z, color = "red", s = 100, marker = "o")
+    fig.canvas.draw()  # forcing the artist to redraw itself
+
 fig = plt.figure(figsize=(8, 6))
 ax = fig.add_subplot(projection='3d')
 
-# # 2. Generate sample data (a 3D spiral helix)
-# z = np.linspace(0, 15, 100)
-# x = np.sin(z)
-# y = np.cos(z)
-
-# # 3. Plot a continuous 3D line
-# ax.plot(x, y, z, label='3D Parametric Spiral', color='blue', linewidth=2)
-
-# # 4. Add some random 3D scatter points
-# xs = np.random.uniform(-1, 1, 30)
-# ys = np.random.uniform(-1, 1, 30)
-# zs = np.random.uniform(0, 15, 30)
-# ax.scatter(xs, ys, zs, color='red', marker='o', s=40, label='Random Points')
-
-# 5. Label your dimensions
 ax.set_xlabel('X Axis')
 ax.set_ylabel('Y Axis')
 ax.set_zlabel('Z Axis')
-ax.set_title('3D Line & Scatter Plot')
+ax.set_title('Scanned Shape')
 ax.legend()
 
-iterations = 0 # Temporary code
+# iterations = 0 # Temporary code
 
 while True:
     if serialPort.readline().decode("utf-8").strip() == "Ready":
         print("Arduino is connected and synced!")
+        serialPort.flushInput()
         break
 
 
-while True and iterations < 50:
+while True:
     #
     # ask for a line of data from the serial port, the ".decode()" converts the
     # data from an "array of bytes", to a string
@@ -87,22 +89,31 @@ while True and iterations < 50:
     #
     # check if data was received
     #
+
+    if serialPort.readline().decode("utf-8").strip() == "Done":
+        serialPort.flushInput()
+        break
+    
     if len(lineOfData) > 0:
     #
     # data was received, convert it into 3 integers
     #
-        data = (x for x in lineOfData.split(','))
+        print(lineOfData)
+        data = lineOfData.split(',')
         # data = np.fromstring(lineOfData, dtype = float, sep = ",")
-        sensorValue = int(data[0])
-        theta = data[1] * np.pi / 180
-        phi = data[2] * np.pi / 180
+        print(data)
+        sensorValue = int(float(data[0]))
+        theta = float(data[1]) * np.pi / 180
+        phi = float(data[2]) * np.pi / 180
         #
         # print the results
         #
         print("sensorValue = " + str(sensorValue), end = "")
         print(", theta = " + str(theta), end = "")
         print(", phi = " + str(phi))
-        iterations += 1
+        # iterations += 1
+        # anim = FuncAnimation(fig, update)
+        #plt.show()
         x = sensorValue * np.cos(theta) * np.cos(phi)
         y = sensorValue * np.cos(theta) * np.sin(phi)
         z = sensorValue * np.sin(theta)
