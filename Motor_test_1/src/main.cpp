@@ -8,29 +8,29 @@
 Servo yawServo;
 Servo pitchServo;
 unsigned long previousMillis = 0;
-int blinkInterval = 300;    // Updated live from the potentiometer
-int val = 0;
-int yawStart_val = 30;
-int yawEnd_val = 120;
-int pitchStart_val = 30;
-int pitchEnd_val = 150;
-int pitchAngle = 0;
-int yawAngle = 0;
-int readingVal = 0;
+float blinkInterval = 300;    // Updated live from the potentiometer
+float val = 0;
+float yawStart_val = 75;
+float yawEnd_val = 130;
+float pitchStart_val = 30;
+float pitchEnd_val = 90;
+float pitchAngle = 0;
+float yawAngle = 0;
+float readingVal = 0;
 const double IR_sensor = A1; 
 
 void readData(){
   readingVal = analogRead(IR_sensor); 
 }
 
-void sendData(int yawAngle= -1, int pitchAngle = -1, int readingVal = -1){
+void sendData(float yawAngle= -1, float pitchAngle = -1, float readingVal = -1){
   // Sends data to serial port python
   Serial.print(readingVal); Serial.print(",");
   Serial.print(pitchAngle); Serial.print(",");
   Serial.println(yawAngle);
 }
 
-void moveYawServo(int yawAngle){
+void moveYawServo(float yawAngle){
   // Yaw is also commonly understood as Pan
   // Moves servo to angle location
   yawServo.write(yawAngle);
@@ -39,10 +39,10 @@ void moveYawServo(int yawAngle){
   delay(100);
 }
 
-void movePitchServo(int pitchStart, int pitchEnd){
+void movePitchServo(float pitchStart, float pitchEnd){
   // Pitch is also commonly understood as Tilt
   // Moves pitch from pitchStart to pitchEnd, stoppping at each 5 degrees
-  for (int angle = pitchStart; angle < pitchEnd; angle = angle + 5)
+  for (float angle = pitchStart; angle < pitchEnd; angle = angle + 2)
   {
     pitchAngle = angle;
     pitchServo.write(angle);
@@ -58,14 +58,16 @@ void controlByPot(){
   // Manual control for the Servo, great for manual debugging
   val = analogRead(pot_pin);
   val = map(val, 0, 1023, 0, 180);
-  unsigned long currentMicros = micros();
+  moveYawServo(val);
+  delay(1000);
+  movePitchServo(pitchStart_val, pitchEnd_val);
 }
 
-void scanOnce(int yawStart, int yawEnd, int pitchStart, int pitchEnd){
+void scanOnce(float yawStart, float yawEnd, float pitchStart, float pitchEnd){
   // Scans once, moving the Yaw servo a full 180 degrees, and then increments the Pitch servo
   // Yaw sweeps from 0 to 180, stopping each 5 degrees
   // Pitch servo is initially at 0, it will sweep to 180, stopping each 10 degrees
-  for (int angle = yawStart; angle < yawEnd; angle = angle + 10)
+  for (float angle = yawStart; angle < yawEnd; angle = angle + 2)
   {
     yawAngle = angle;
     moveYawServo(angle);
@@ -90,11 +92,13 @@ void setup() {
   // pinMode(IR_sensor, INPUT_PULLUP);
 
   // set both servo to default positions
-  yawServo.write(0);
-  pitchServo.write(0);
+  //yawServo.write(0);
+  //pitchServo.write(0);
   while (!Serial);
   Serial.println("Ready");
   delay(2000);
+  //controlByPot();
+  kill();
   scanOnce(yawStart_val, yawEnd_val, pitchStart_val, pitchEnd_val);
   Serial.println("Done");
 }

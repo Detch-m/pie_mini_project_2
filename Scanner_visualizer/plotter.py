@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import numpy as np
 import time
+
 #
 # Note 1: This python script was designed to run with Python 3.
 #
@@ -29,7 +30,7 @@ import time
 # For Windows computers, the name is formatted like: "COM6"
 # For Apple computers, the name is formatted like: "/dev/tty.usbmodemfa141"
 #
-arduinoComPort = "COM7"
+arduinoComPort = "COM5"
 #
 # Set the baud rate
 # NOTE1: The baudRate for the sending and receiving programs must be the same!
@@ -40,7 +41,7 @@ baudRate = 9600
 #
 # open the serial port
 #
-serialPort = serial.Serial(arduinoComPort, baudRate, timeout = 1)
+serialPort = serial.Serial(arduinoComPort, baudRate, timeout=1)
 time.sleep(2)
 #
 # main loop to read data from the Arduino, then display it
@@ -50,11 +51,15 @@ x = []
 y = []
 z = []
 
-def rawToDistance(raw):
-    return 8.072287430752201e-05 * raw * raw - 0.183866060072103 * raw + 88.578932193552731
 
-fig = plt.figure(figsize = (8, 6))
-ax = fig.add_subplot(projection = "3d")
+def rawToDistance(raw):
+    return (
+        8.072287430752201e-05 * raw * raw - 0.183866060072103 * raw + 88.578932193552731
+    )
+
+
+fig = plt.figure(figsize=(8, 6))
+ax = fig.add_subplot(projection="3d")
 
 ax.set_xlabel("X Axis")
 ax.set_ylabel("Y Axis")
@@ -77,18 +82,19 @@ while True:
     # data from an "array of bytes", to a string
     #
     lineOfData = serialPort.readline().decode()
+    print(lineOfData)
     #
     # check if data was received
     #
 
-    if serialPort.readline().decode("utf-8").strip() == "Done":
+    if "Done" in lineOfData:
         serialPort.flushInput()
         break
-    
+
     if len(lineOfData) > 0:
-    #
-    # data was received, convert it into 3 integers
-    #
+        #
+        # data was received, convert it into 3 integers
+        #
         data = lineOfData.split(",")
         # data = np.fromstring(lineOfData, dtype = float, sep = ",")
         sensorValue = int(float(data[0]))
@@ -98,15 +104,16 @@ while True:
         #
         # print the results
         #
-        print("sensorValue = " + str(sensorValue), end = "")
-        print(", theta = " + str(theta), end = "")
+        print("sensorValue = " + str(sensorValue), end="")
+        print(", theta = " + str(theta), end="")
         print(", phi = " + str(phi))
         # iterations += 1
         # anim = FuncAnimation(fig, update)
-        #plt.show()
+        # plt.show()
         x = sensorValue * np.sin(theta) * np.cos(phi)
         y = sensorValue * np.sin(theta) * np.sin(phi)
         z = sensorValue * np.cos(theta)
         print(x, y, z)
-        ax.scatter(x, y, z, color = "red", s = 10, marker = "o")
+        if sensorValue <= 50 and sensorValue >= 0:
+            ax.scatter(x, y, z, color="red", s=5, marker="o")
 plt.show()
