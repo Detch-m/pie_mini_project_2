@@ -40,7 +40,7 @@ baudRate = 9600
 #
 # open the serial port
 #
-serialPort = serial.Serial(arduinoComPort, baudRate, timeout=1)
+serialPort = serial.Serial(arduinoComPort, baudRate, timeout = 1)
 time.sleep(2)
 #
 # main loop to read data from the Arduino, then display it
@@ -50,25 +50,16 @@ x = []
 y = []
 z = []
 
-def update(frame):
-    # updating the data by adding one more point
-    # x.append(random.randint(1,100))
-    # y.append(random.randint(1,100))
-    x.append(sensorValue * np.cos(theta) * np.cos(phi))
-    y.append(sensorValue * np.cos(theta) * np.sin(phi))
-    z.append(sensorValue * np.sin(theta))
+def rawToDistance(raw):
+    return 8.072287430752201e-05 * raw * raw - 0.183866060072103 * raw + 88.578932193552731
 
-    ax.clear()  # clearing the axes
-    ax.scatter(x, y, z, color = "red", s = 100, marker = "o")
-    fig.canvas.draw()  # forcing the artist to redraw itself
+fig = plt.figure(figsize = (8, 6))
+ax = fig.add_subplot(projection = "3d")
 
-fig = plt.figure(figsize=(8, 6))
-ax = fig.add_subplot(projection='3d')
-
-ax.set_xlabel('X Axis')
-ax.set_ylabel('Y Axis')
-ax.set_zlabel('Z Axis')
-ax.set_title('Scanned Shape')
+ax.set_xlabel("X Axis")
+ax.set_ylabel("Y Axis")
+ax.set_zlabel("Z Axis")
+ax.set_title("Scanned Shape")
 ax.legend()
 
 # iterations = 0 # Temporary code
@@ -98,11 +89,10 @@ while True:
     #
     # data was received, convert it into 3 integers
     #
-        print(lineOfData)
-        data = lineOfData.split(',')
+        data = lineOfData.split(",")
         # data = np.fromstring(lineOfData, dtype = float, sep = ",")
-        print(data)
         sensorValue = int(float(data[0]))
+        sensorValue = rawToDistance(sensorValue)
         theta = float(data[1]) * np.pi / 180
         phi = float(data[2]) * np.pi / 180
         #
@@ -114,8 +104,9 @@ while True:
         # iterations += 1
         # anim = FuncAnimation(fig, update)
         #plt.show()
-        x = sensorValue * np.cos(theta) * np.cos(phi)
-        y = sensorValue * np.cos(theta) * np.sin(phi)
-        z = sensorValue * np.sin(theta)
-        ax.scatter(x, y, z, color='red', s=100, marker='o')
+        x = sensorValue * np.sin(theta) * np.cos(phi)
+        y = sensorValue * np.sin(theta) * np.sin(phi)
+        z = sensorValue * np.cos(theta)
+        print(x, y, z)
+        ax.scatter(x, y, z, color = "red", s = 10, marker = "o")
 plt.show()
