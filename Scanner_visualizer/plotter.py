@@ -7,7 +7,7 @@
 # ******************************************************************
 import serial
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
+from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
 import time
 
@@ -30,14 +30,14 @@ import time
 # For Windows computers, the name is formatted like: "COM6"
 # For Apple computers, the name is formatted like: "/dev/tty.usbmodemfa141"
 #
-arduinoComPort = "COM5"
+arduinoComPort = "COM8"
 #
 # Set the baud rate
 # NOTE1: The baudRate for the sending and receiving programs must be the same!
 # NOTE2: For faster communication, set the baudRate to 115200 below
 # and check that the arduino sketch you are using is updated as well.
 #
-baudRate = 9600
+baudRate = 115200
 #
 # open the serial port
 #
@@ -47,27 +47,26 @@ time.sleep(2)
 # main loop to read data from the Arduino, then display it
 #
 
-x = []
-y = []
-z = []
-
 
 def rawToDistance(raw):
     return (
-        8.072287430752201e-05 * raw * raw - 0.183866060072103 * raw + 88.578932193552731
+        1.360319998315560e-04 * raw * raw - 0.216927005444725 * raw + 96.761002374256321
     )
 
+p = None
 
 fig = plt.figure(figsize=(8, 6))
-ax = fig.add_subplot(projection="3d")
+ax = fig.add_subplot(projection = "3d")
+
+color_list = ['#00FF00', "#FFFF00", "#FF0000", "#0000FF"]
+
+custom_cmap = LinearSegmentedColormap.from_list("map", color_list)
 
 ax.set_xlabel("X Axis")
 ax.set_ylabel("Y Axis")
 ax.set_zlabel("Z Axis")
 ax.set_title("Scanned Shape")
 ax.legend()
-
-# iterations = 0 # Temporary code
 
 while True:
     if serialPort.readline().decode("utf-8").strip() == "Ready":
@@ -77,43 +76,30 @@ while True:
 
 
 while True:
-    #
-    # ask for a line of data from the serial port, the ".decode()" converts the
-    # data from an "array of bytes", to a string
-    #
     lineOfData = serialPort.readline().decode()
     print(lineOfData)
-    #
-    # check if data was received
-    #
 
     if "Done" in lineOfData:
         serialPort.flushInput()
         break
 
     if len(lineOfData) > 0:
-        #
-        # data was received, convert it into 3 integers
-        #
         data = lineOfData.split(",")
-        # data = np.fromstring(lineOfData, dtype = float, sep = ",")
         sensorValue = int(float(data[0]))
-        sensorValue = rawToDistance(sensorValue)
-        theta = float(data[1]) * np.pi / 180
-        phi = float(data[2]) * np.pi / 180
-        #
-        # print the results
-        #
-        print("sensorValue = " + str(sensorValue), end="")
+        distance = rawToDistance(sensorValue) # in cm
+        theta = float(data[1]) * np.pi / 180 # read as deg then converted to rad
+        phi = float(data[2]) * np.pi / 180 # read as deg then converted to rad
+
+        print("distance = " + str(sensorValue), end="")
         print(", theta = " + str(theta), end="")
         print(", phi = " + str(phi))
-        # iterations += 1
-        # anim = FuncAnimation(fig, update)
-        # plt.show()
-        x = sensorValue * np.sin(theta) * np.cos(phi)
-        y = sensorValue * np.sin(theta) * np.sin(phi)
-        z = sensorValue * np.cos(theta)
+
+        x = distance * np.sin(theta) * np.cos(phi)
+        y = distance * np.sin(theta) * np.sin(phi)
+        z = distance * np.cos(theta)
         print(x, y, z)
-        if sensorValue <= 50 and sensorValue >= 0:
-            ax.scatter(x, y, z, color="red", s=5, marker="o")
+        if distance <= 60 and distance >= 13 and y <= 35:
+            p = ax.scatter(x, y, z, c = y, s = 5, marker = "o", cmap = custom_cmap, vmin = 0, vmax = 35)
+cbar = fig.colorbar(p, ax = ax, label = "Continuous Value Scale")
+plt.axis('equal')
 plt.show()
