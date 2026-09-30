@@ -5,9 +5,9 @@ import numpy as np
 import time
 import csv
 
-arduinoComPort = "COM5"
+arduinoComPort = "COM8"
 baudRate = 115200
-serialPort = serial.Serial(arduinoComPort, baudRate, timeout=1)
+serialPort = serial.Serial(arduinoComPort, baudRate, timeout = 1)
 time.sleep(2)
 
 
@@ -18,6 +18,7 @@ def raw_to_distance(raw: float):
     )
 
 
+# Set up the plot
 p = None
 fig = plt.figure(figsize=(8, 6))
 ax = fig.add_subplot(projection="3d")
@@ -74,9 +75,9 @@ def start_scan():
             print(x, y, z)
             if distance <= 60 and distance >= 13 and y <= 35:
                 p = ax.scatter(
-                    x, y, z, c=y, s=5, marker="o", cmap=custom_cmap, vmin=0, vmax=35
+                    x, y, z, c=y, s=5, marker = "o", cmap=custom_cmap, vmin = 0, vmax = 35
                 )
-    cbar = fig.colorbar(p, ax=ax, label="Continuous Value Scale")
+    cbar = fig.colorbar(p, ax=ax, label="Y Value")
     plt.axis("equal")
     plt.show()
 
@@ -141,8 +142,8 @@ def plot_from_csv(data=None):
 
 def main():
     """Runs the scan and saves it to a csv; option to plot from csv"""
-    # start_scan()
-    # save_data(points)
+    start_scan()
+    save_data(points)
     # plot_from_csv()
 
 

@@ -9,8 +9,8 @@ Servo pitchServo;
 unsigned long previousMillis = 0;
 float blinkInterval = 300;    // Updated live from the potentiometer
 int val = 0;
-int yawStart_val = 90;
-int yawEnd_val = 180;
+int yawStart_val = 60;
+int yawEnd_val = 120;
 int pitchStart_val = 45;
 int pitchEnd_val = 90;
 int pitchAngle = 0;
@@ -113,5 +113,5 @@ void setup() {
 }
 
 void loop() {
-  // Code that loops
+  // No loops are needed here
 }
